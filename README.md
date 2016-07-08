@@ -25,7 +25,7 @@ set(obj, ['a', 'b', 'c'], 10) //=> { a: { b: { c: 10 } } }
 
 ## License
 
-MIT
+Apache 2.0
 
 [npm-image]: https://img.shields.io/npm/v/setvalue.svg?style=flat
 [npm-url]: https://npmjs.org/package/setvalue
