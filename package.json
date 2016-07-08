@@ -1,6 +1,6 @@
 {
   "name": "setvalue",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "description": "Set a nested value from an object by path",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
