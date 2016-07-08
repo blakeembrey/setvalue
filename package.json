@@ -43,8 +43,9 @@
     "blue-tape": "^0.2.0",
     "istanbul": "^0.4.4",
     "tap-spec": "^4.1.1",
+    "tslint": "^3.13.0",
     "tslint-config-standard": "^1.3.0",
-    "typescript": "^1.5.3",
+    "typescript": "^1.8.10",
     "typings": "^1.3.0"
   }
 }
