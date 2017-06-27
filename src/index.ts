@@ -2,9 +2,9 @@ const _hasOwnProperty = Object.prototype.hasOwnProperty
 
 export type Path = Array<string | number | symbol>
 
-export function set (obj: any, path: Path, value: any) {
+export function set <T = any> (obj: any, path: Path, value: T): void | T {
   if (path.length === 0) {
-    return
+    return undefined
   }
 
   let res = obj
@@ -15,7 +15,7 @@ export function set (obj: any, path: Path, value: any) {
       return res[last] = value
     }
 
-    return
+    return undefined
   }
 
   for (let i = 0; i < path.length - 1; i++) {
