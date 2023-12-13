@@ -1,6 +1,6 @@
 {
   "name": "setvalue",
-  "version": "1.0.1",
+  "version": "2.0.0",
   "description": "Type-safe library for reading, writing, or checking, nested values of an object",
   "keywords": [
     "set",
