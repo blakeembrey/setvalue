@@ -1,14 +1,9 @@
 {
+  "extends": "@borderless/ts-scripts/configs/tsconfig.json",
   "compilerOptions": {
-    "target": "es5",
     "rootDir": "src",
-    "outDir": "dist",
-    "module": "commonjs",
-    "declaration": true,
-    "noImplicitAny": true,
-    "removeComments": true,
-    "strictNullChecks": true,
-    "sourceMap": true,
-    "inlineSources": true
-  }
+    "outDir": "dist"
+  },
+  "include": ["src/**/*"],
+  "exclude": ["src/**/*.spec.ts"]
 }

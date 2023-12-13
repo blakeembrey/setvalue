@@ -1,12 +1,6 @@
 # Setvalue
 
-[![NPM version][npm-image]][npm-url]
-[![NPM downloads][downloads-image]][downloads-url]
-[![Build status][travis-image]][travis-url]
-[![Test coverage][coveralls-image]][coveralls-url]
-[![Greenkeeper badge](https://badges.greenkeeper.io/blakeembrey/setvalue.svg)](https://greenkeeper.io/)
-
-> Set a nested value from an object by path.
+> Type-safe library for reading, writing, or checking, nested values of an object.
 
 ## Installation
 
@@ -17,22 +11,15 @@ npm install setvalue --save
 ## Usage
 
 ```js
-import { set } from 'setvalue'
+import { set, get, has } from "setvalue";
 
-const obj = { a: 'prop' }
+const obj = { a: "prop" };
 
-set(obj, ['a', 'b', 'c'], 10) //=> { a: { b: { c: 10 } } }
+set("a", "b", "c")(obj, 10); //=> { a: { b: { c: 10 } } }
+get("a", "b", "c")(obj); //=> 10
+has("a", "b", "c")(obj); //=> true
 ```
 
 ## License
 
 Apache 2.0
-
-[npm-image]: https://img.shields.io/npm/v/setvalue.svg?style=flat
-[npm-url]: https://npmjs.org/package/setvalue
-[downloads-image]: https://img.shields.io/npm/dm/setvalue.svg?style=flat
-[downloads-url]: https://npmjs.org/package/setvalue
-[travis-image]: https://img.shields.io/travis/blakeembrey/setvalue.svg?style=flat
-[travis-url]: https://travis-ci.org/blakeembrey/setvalue
-[coveralls-image]: https://img.shields.io/coveralls/blakeembrey/setvalue.svg?style=flat
-[coveralls-url]: https://coveralls.io/r/blakeembrey/setvalue?branch=master

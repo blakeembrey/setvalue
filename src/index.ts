@@ -1,36 +1,84 @@
-const _hasOwnProperty = Object.prototype.hasOwnProperty
+export type Segment = string | number;
+export type Path = Segment[];
 
-export type Path = Array<string | number | symbol>
+export type GetPath<T, P extends Path> = T extends object
+  ? P extends [infer K extends keyof T]
+    ? T[K]
+    : P extends [infer K extends keyof T, ...infer R extends Path]
+      ? GetPath<T[K], R>
+      : never
+  : never;
 
-export function set <T = any> (obj: any, path: Path, value: T): void | T {
-  if (path.length === 0) {
-    return undefined
-  }
+export type ValidObject<P extends Path> = P extends []
+  ? never
+  : P extends [infer K extends Segment]
+    ? { [P in K]?: unknown }
+    : P extends [infer K extends Segment, ...infer R extends Path]
+      ? { [P in K]?: ValidObject<R> | unknown }
+      : never;
 
-  let res = obj
-  const last = path[path.length - 1]
+/**
+ * Create a setter function for a given path.
+ */
+export function set<P extends Path>(
+  ...path: P
+): <T extends ValidObject<P>, V extends GetPath<T, P>>(obj: T, value: V) => V {
+  if (path.length === 0) throw new TypeError("Path cannot be empty");
 
-  if (path.length === 1) {
-    if (isObject(res)) {
-      return res[last] = value
-    }
-
-    return undefined
-  }
-
-  for (let i = 0; i < path.length - 1; i++) {
-    const key = path[i]
-
-    if (!_hasOwnProperty.call(res, key) || !isObject(res[key])) {
-      res[key] = {}
-    }
-
-    res = res[key]
-  }
-
-  return res[last] = value
+  return new Function(`return (obj, value) => ${setBody(path)}`)();
 }
 
-function isObject (value: any) {
-  return value != null && (typeof value === 'object' || typeof value === 'function')
+function setBody(path: Path): string {
+  const [key, ...rest] = path;
+  const prop = JSON.stringify(key);
+  if (rest.length === 0) {
+    return `(obj[${prop}] = value)`;
+  }
+  return `(obj = typeof obj[${prop}] === "object" && obj[${prop}] || (obj[${prop}] = {})) && ${setBody(
+    rest,
+  )}`;
+}
+
+/**
+ * Create a check function for a given path.
+ */
+export function has<P extends Path>(
+  ...path: P
+): (obj: ValidObject<P>) => boolean {
+  if (path.length === 0) throw new TypeError("Path cannot be empty");
+
+  return new Function(`return (obj) => ${hasBody(path)}`)();
+}
+
+function hasBody(path: Path): string {
+  const [key, ...rest] = path;
+  const prop = JSON.stringify(key);
+  if (rest.length === 0) {
+    return `Object.prototype.hasOwnProperty.call(obj, ${prop})`;
+  }
+  return `typeof obj[${prop}] === "object" && (obj = obj[${prop}]) && ${hasBody(
+    rest,
+  )}`;
+}
+
+/**
+ * Create a getter function for a given path.
+ */
+export function get<P extends Path>(
+  ...path: P
+): <T extends ValidObject<P>>(obj: T) => GetPath<T, P> {
+  if (path.length === 0) throw new TypeError("Path cannot be empty");
+
+  return new Function(`return (obj) => ${getBody(path)}`)();
+}
+
+function getBody(path: Path): string {
+  const [key, ...rest] = path;
+  const prop = JSON.stringify(key);
+  if (rest.length === 0) {
+    return `obj[${prop}]`;
+  }
+  return `(typeof obj[${prop}] === "object" ? (obj = obj[${prop}]) : undefined) && ${getBody(
+    rest,
+  )}`;
 }
