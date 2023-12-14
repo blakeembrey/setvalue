@@ -4,13 +4,20 @@ export type Path = Key[];
 /**
  * Build a valid object shape for a given path.
  */
-export type ValidObject<P extends Path> = P extends []
-  ? never
-  : P extends [infer K extends Key]
-    ? { [P in K]?: unknown }
-    : P extends [infer K extends Key, ...infer R extends Path]
-      ? { [P in K]?: ValidObject<R> | unknown }
-      : never;
+export type ValidObject<P extends Path> = P extends [infer K extends Key]
+  ? { [P in K]?: unknown }
+  : P extends [infer K extends Key, ...infer R extends Path]
+    ? {
+        [P in K]?:
+          | ValidObject<R>
+          | string
+          | number
+          | boolean
+          | symbol
+          | null
+          | undefined;
+      }
+    : never;
 
 /**
  * Get the value type for a given path in an object.

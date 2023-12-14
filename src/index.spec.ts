@@ -1,4 +1,5 @@
 import { describe, it, expect, expectTypeOf } from "vitest";
+import { TypeOf, expectType } from "ts-expect";
 import { set, has, get } from "./index.js";
 
 describe("set", () => {
@@ -87,6 +88,15 @@ describe("set", () => {
     expect(set("a", "b")(obj, 2)).toBe(2);
     expect(obj).toEqual({ a: { b: 2 } });
   });
+
+  it("should reject invalid object shapes", () => {
+    type InvalidObject = { a: { b: number } | undefined };
+    type ValidObject = { a: { z: string } | undefined };
+    const fn = set("a", "z");
+
+    expectType<TypeOf<Parameters<typeof fn>, [InvalidObject, string]>>(false);
+    expectType<TypeOf<Parameters<typeof fn>, [ValidObject, string]>>(true);
+  });
 });
 
 describe("has", () => {
@@ -121,6 +131,15 @@ describe("has", () => {
     type Obj = { a?: { b?: number } | undefined };
     const obj: Obj = { a: undefined };
     expect(has("a")(obj)).toBe(true);
+  });
+
+  it("should reject invalid object shapes", () => {
+    type InvalidObject = { a: { b: number } | undefined };
+    type ValidObject = { a: { z: string } | undefined };
+    const fn = has("a", "z");
+
+    expectType<TypeOf<Parameters<typeof fn>, [InvalidObject]>>(false);
+    expectType<TypeOf<Parameters<typeof fn>, [ValidObject]>>(true);
   });
 });
 
@@ -166,5 +185,14 @@ describe("get", () => {
     const result = get("a", "b")(obj);
     expect(result).toBe(undefined);
     expectTypeOf(result).toEqualTypeOf<number | undefined>();
+  });
+
+  it("should reject invalid object shapes", () => {
+    type InvalidObject = { a: { b: number } | undefined };
+    type ValidObject = { a: { z: string } | undefined };
+    const fn = get("a", "z");
+
+    expectType<TypeOf<Parameters<typeof fn>, [InvalidObject]>>(false);
+    expectType<TypeOf<Parameters<typeof fn>, [ValidObject]>>(true);
   });
 });
