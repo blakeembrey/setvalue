@@ -1,42 +1,47 @@
-export type Segment = string | number;
-export type Path = Segment[];
+export type Key = PropertyKey;
+export type Path = Key[];
 
-export type GetPath<T, P extends Path> = T extends object
+/**
+ * Build a valid object shape for a given path.
+ */
+export type ValidObject<P extends Path> = P extends []
+  ? never
+  : P extends [infer K extends Key]
+    ? { [P in K]?: unknown }
+    : P extends [infer K extends Key, ...infer R extends Path]
+      ? { [P in K]?: ValidObject<R> | unknown }
+      : never;
+
+/**
+ * Get the value type for a given path in an object.
+ */
+export type GetValue<T, P extends Path, F = undefined> = T extends object
   ? P extends [infer K extends keyof T]
     ? T[K]
     : P extends [infer K extends keyof T, ...infer R extends Path]
-      ? GetPath<T[K], R>
+      ? GetValue<T[K], R, F>
       : never
-  : never;
-
-export type ValidObject<P extends Path> = P extends []
-  ? never
-  : P extends [infer K extends Segment]
-    ? { [P in K]?: unknown }
-    : P extends [infer K extends Segment, ...infer R extends Path]
-      ? { [P in K]?: ValidObject<R> | unknown }
-      : never;
+  : F;
 
 /**
  * Create a setter function for a given path.
  */
 export function set<P extends Path>(
   ...path: P
-): <T extends ValidObject<P>, V extends GetPath<T, P>>(obj: T, value: V) => V {
-  if (path.length === 0) throw new TypeError("Path cannot be empty");
+): <T extends ValidObject<P>, V extends GetValue<T, P, never>>(
+  obj: T,
+  value: V,
+) => V {
+  const len = path.length - 1;
+  if (len === -1) throw new TypeError("Path cannot be empty");
 
-  return new Function(`return (obj, value) => ${setBody(path)}`)();
-}
-
-function setBody(path: Path): string {
-  const [key, ...rest] = path;
-  const prop = JSON.stringify(key);
-  if (rest.length === 0) {
-    return `(obj[${prop}] = value)`;
-  }
-  return `(obj = typeof obj[${prop}] === "object" && obj[${prop}] || (obj[${prop}] = {})) && ${setBody(
-    rest,
-  )}`;
+  return (obj: any, value: any) => {
+    for (let i = 0; i < len; i++) {
+      const key = path[i];
+      obj = isObject(obj[key]) ? obj[key] : (obj[key] = {});
+    }
+    return (obj[path[len]] = value);
+  };
 }
 
 /**
@@ -45,20 +50,17 @@ function setBody(path: Path): string {
 export function has<P extends Path>(
   ...path: P
 ): (obj: ValidObject<P>) => boolean {
-  if (path.length === 0) throw new TypeError("Path cannot be empty");
+  const len = path.length - 1;
+  if (len === -1) throw new TypeError("Path cannot be empty");
 
-  return new Function(`return (obj) => ${hasBody(path)}`)();
-}
-
-function hasBody(path: Path): string {
-  const [key, ...rest] = path;
-  const prop = JSON.stringify(key);
-  if (rest.length === 0) {
-    return `Object.prototype.hasOwnProperty.call(obj, ${prop})`;
-  }
-  return `typeof obj[${prop}] === "object" && (obj = obj[${prop}]) && ${hasBody(
-    rest,
-  )}`;
+  return (obj: any) => {
+    for (let i = 0; i < len; i++) {
+      const key = path[i];
+      if (!isObject(obj[key])) return false;
+      obj = obj[key];
+    }
+    return path[len] in obj;
+  };
 }
 
 /**
@@ -66,19 +68,19 @@ function hasBody(path: Path): string {
  */
 export function get<P extends Path>(
   ...path: P
-): <T extends ValidObject<P>>(obj: T) => GetPath<T, P> {
-  if (path.length === 0) throw new TypeError("Path cannot be empty");
+): <T extends ValidObject<P>>(obj: T) => GetValue<T, P> {
+  const len = path.length - 1;
+  if (len === -1) throw new TypeError("Path cannot be empty");
 
-  return new Function(`return (obj) => ${getBody(path)}`)();
+  return (obj: any) => {
+    for (let i = 0; i < len; i++) {
+      const key = path[i];
+      if (!isObject(obj[key])) return undefined;
+      obj = obj[key];
+    }
+    return obj[path[len]];
+  };
 }
 
-function getBody(path: Path): string {
-  const [key, ...rest] = path;
-  const prop = JSON.stringify(key);
-  if (rest.length === 0) {
-    return `obj[${prop}]`;
-  }
-  return `(typeof obj[${prop}] === "object" ? (obj = obj[${prop}]) : undefined) && ${getBody(
-    rest,
-  )}`;
-}
+const isObject = (value: unknown): value is object =>
+  typeof value === "object" && value !== null;

@@ -59,6 +59,34 @@ describe("set", () => {
     expect(set("a", "b")(obj, 2)).toBe(2);
     expect(obj).toEqual({ a: { b: 2 } });
   });
+
+  it("should overwrite null", () => {
+    type Obj = { a: { b: number } | null };
+    const obj: Obj = { a: null };
+    expect(set("a", "b")(obj, 2)).toBe(2);
+    expect(obj).toEqual({ a: { b: 2 } });
+  });
+
+  it("should overwrite undefined", () => {
+    type Obj = { a: { b: number } | undefined };
+    const obj: Obj = { a: undefined };
+    expect(set("a", "b")(obj, 2)).toBe(2);
+    expect(obj).toEqual({ a: { b: 2 } });
+  });
+
+  it("should overwrite null with primitive value", () => {
+    type Obj = { a: { b: number | null } };
+    const obj: Obj = { a: { b: null } };
+    expect(set("a", "b")(obj, 2)).toBe(2);
+    expect(obj).toEqual({ a: { b: 2 } });
+  });
+
+  it("should overwrite undefined with primitive value", () => {
+    type Obj = { a: { b: number | undefined } };
+    const obj: Obj = { a: { b: undefined } };
+    expect(set("a", "b")(obj, 2)).toBe(2);
+    expect(obj).toEqual({ a: { b: 2 } });
+  });
 });
 
 describe("has", () => {
@@ -82,6 +110,18 @@ describe("has", () => {
     const obj: Obj = {};
     expect(has("a", "b")(obj)).toBe(false);
   });
+
+  it("should return true for null", () => {
+    type Obj = { a?: { b?: number } | null };
+    const obj: Obj = { a: null };
+    expect(has("a")(obj)).toBe(true);
+  });
+
+  it("should return true for undefined", () => {
+    type Obj = { a?: { b?: number } | undefined };
+    const obj: Obj = { a: undefined };
+    expect(has("a")(obj)).toBe(true);
+  });
 });
 
 describe("get", () => {
@@ -102,6 +142,27 @@ describe("get", () => {
   it("should return undefined for missing values", () => {
     type Obj = { a?: { b?: number } };
     const obj: Obj = {};
+    const result = get("a", "b")(obj);
+    expect(result).toBe(undefined);
+    expectTypeOf(result).toEqualTypeOf<number | undefined>();
+  });
+
+  it("should handle null", () => {
+    type Obj = { a: { b: number } | null };
+    const obj: Obj = { a: null };
+
+    const missing = get("a", "b")(obj);
+    expect(missing).toBe(undefined);
+    expectTypeOf(missing).toEqualTypeOf<number | undefined>();
+
+    const result = get("a")(obj);
+    expect(result).toBe(null);
+    expectTypeOf(result).toEqualTypeOf<Obj["a"]>();
+  });
+
+  it("should handle undefined", () => {
+    type Obj = { a: { b: number } | undefined };
+    const obj: Obj = { a: undefined };
     const result = get("a", "b")(obj);
     expect(result).toBe(undefined);
     expectTypeOf(result).toEqualTypeOf<number | undefined>();
